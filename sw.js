@@ -2,7 +2,7 @@
 
 // CACHE_VERSION e reescrito pelo build.sh a cada execucao (hash do conteudo de index.html),
 // entao qualquer mudanca real no app troca o nome do cache e invalida o anterior sozinha.
-const CACHE_VERSION = "80d9d9399f";
+const CACHE_VERSION = "890f0c281e";
 const CACHE_NAME = "bits-clp-" + CACHE_VERSION;
 
 const INDEX_FILE = "index.html";

@@ -371,10 +371,33 @@
   ];
 
   // ================= ESTADO =================
-  let level = 0;
-  let unlocked = 0;
-  let streak = 0;
-  const stat = LEVELS.map(() => ({ ok: 0, n: 0 }));
+  const SAVE_KEY = "bytelearn-progress-v1";
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (
+        typeof s.level !== "number" || typeof s.unlocked !== "number" ||
+        typeof s.streak !== "number" || !Array.isArray(s.stat) ||
+        s.stat.length !== LEVELS.length
+      ) return null;
+      return s;
+    } catch (e) { return null; }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ level, unlocked, streak, stat }));
+    } catch (e) { /* localStorage indisponivel (modo privado etc): segue sem salvar */ }
+  }
+
+  const saved = loadState();
+  let level = saved ? Math.min(Math.max(saved.level, 0), LEVELS.length - 1) : 0;
+  let unlocked = saved ? Math.min(Math.max(saved.unlocked, 0), LEVELS.length - 1) : 0;
+  let streak = saved ? saved.streak : 0;
+  const stat = saved ? saved.stat.map((s) => ({ ok: s.ok | 0, n: s.n | 0 })) : LEVELS.map(() => ({ ok: 0, n: 0 }));
   let q = null, answered = false, bitState = 0;
 
   // ================= RENDER =================
@@ -392,7 +415,7 @@
         '<span class="no">' + (i + 1) + "</span>" +
         '<span><span class="nm">' + lv[0] + '</span><br><span class="ds">' + lv[1] + "</span></span>" +
         '<span class="st">' + (i > unlocked ? "travado" : stat[i].ok + "/" + stat[i].n) + "</span>";
-      b.addEventListener("click", () => { if (i <= unlocked) { level = i; streak = 0; next(); } });
+      b.addEventListener("click", () => { if (i <= unlocked) { level = i; streak = 0; saveState(); next(); } });
       L.appendChild(b);
     });
   }
@@ -510,6 +533,7 @@
     stat[level].n++;
     if (ok) { stat[level].ok++; streak++; } else { streak = 0; }
     if (streak >= MASTERY && level === unlocked && unlocked < LEVELS.length - 1) unlocked++;
+    saveState();
 
     $("v-text").className = "verdict " + (ok ? "ok" : "no");
     $("v-text").textContent = ok
