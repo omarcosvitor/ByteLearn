@@ -1,0 +1,955 @@
+<!-- PART: 01-head -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Caderno de exercícios — bits, bytes e tipos de CLP</title>
+  <meta name="description" content="Treino offline de tipos de dados de CLP: bits, bytes, hexadecimal, complemento de dois, conversões e endereçamento Siemens.">
+  <meta name="theme-color" content="#D5D9D6">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+<!-- PART: 02-styles -->
+<style>
+  @font-face {
+    font-family: "IBM Plex Sans";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/ibm-plex-sans-400.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "IBM Plex Sans";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("fonts/ibm-plex-sans-500.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "IBM Plex Sans";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("fonts/ibm-plex-sans-600.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "IBM Plex Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/ibm-plex-mono-400.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "IBM Plex Mono";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("fonts/ibm-plex-mono-500.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "IBM Plex Mono";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("fonts/ibm-plex-mono-600.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Saira Condensed";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("fonts/saira-condensed-600.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Saira Condensed";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("fonts/saira-condensed-700.woff2") format("woff2");
+  }
+
+  :root {
+    --ral7035: #D5D9D6;
+    --panel:   #EDEFEE;
+    --paper:   #F7F8F7;
+    --rail:    #8C9699;
+    --steel:   #B4BCBE;
+    --ink:     #13181A;
+    --ink-soft:#5C666A;
+    --petrol:  #0A6E75;
+    --petrol-lit: #14A3AD;
+    --signal:  #D8891C;
+    --alarm:   #B0322A;
+
+    --f-disp: "Saira Condensed", system-ui, sans-serif;
+    --f-body: "IBM Plex Sans", system-ui, sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --gap: clamp(14px, 3.2vw, 22px);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.028) 0 1px, transparent 1px 7px),
+      var(--ral7035);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 15px; line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: var(--gap); }
+
+  .eyebrow {
+    font-family: var(--f-disp); font-weight: 700; text-transform: uppercase;
+    letter-spacing: .16em; font-size: 12px; color: var(--ink-soft); margin: 0;
+  }
+  header { border-bottom: 2px solid var(--rail); background: var(--panel); }
+  header .wrap { padding-block: clamp(16px, 4vw, 26px); }
+  h1 {
+    font-family: var(--f-disp); font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em; font-size: clamp(24px, 6.5vw, 40px); line-height: .98;
+    margin: 6px 0 6px;
+  }
+  .sub { color: var(--ink-soft); font-size: 14px; margin: 0; max-width: 56ch; }
+
+  /* ---------- escada de níveis ---------- */
+  .ladder { display: grid; gap: 5px; margin-bottom: var(--gap); }
+  .lvl {
+    display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+    background: var(--paper); border: 1px solid var(--rail); border-left: 4px solid var(--steel);
+    border-radius: 2px; padding: 8px 10px; text-align: left; cursor: pointer;
+    font: inherit; color: inherit; width: 100%;
+  }
+  .lvl[data-state="locked"] { opacity: .45; cursor: not-allowed; }
+  .lvl[data-state="done"] { border-left-color: var(--petrol); }
+  .lvl[aria-current="true"] { border-left-color: var(--signal); background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.09); }
+  .lvl .no {
+    font-family: var(--f-mono); font-weight: 600; font-size: 15px;
+    text-align: center; color: var(--ink-soft);
+  }
+  .lvl[aria-current="true"] .no { color: var(--ink); }
+  .lvl .nm { font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .07em; font-weight: 600; font-size: 14px; }
+  .lvl .ds { font-size: 12px; color: var(--ink-soft); line-height: 1.35; }
+  .lvl .st { font-family: var(--f-mono); font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+  .lvl:focus-visible { outline: 2px solid var(--petrol); outline-offset: 2px; }
+
+  /* ---------- medidor de domínio (assinatura) ---------- */
+  .gauge { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .leds { display: flex; gap: 4px; flex: 1; }
+  .led {
+    flex: 1; height: 13px; border-radius: 2px;
+    background: linear-gradient(180deg, #DCE0E0, #BDC4C5);
+    border: 1px solid var(--rail);
+  }
+  .led.lit {
+    background: linear-gradient(180deg, var(--petrol-lit), var(--petrol));
+    border-color: #06555B;
+    box-shadow: 0 0 6px rgba(20,163,173,.5);
+  }
+  .gauge .cap {
+    font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .12em;
+    font-size: 11px; font-weight: 600; color: var(--ink-soft); white-space: nowrap;
+  }
+
+  /* ---------- cartão da questão ---------- */
+  .qcard {
+    background: var(--paper); border: 1px solid var(--rail); border-radius: 2px;
+    padding: clamp(14px, 4vw, 22px);
+  }
+  .qmeta {
+    font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .12em;
+    font-size: 11px; font-weight: 600; color: var(--ink-soft);
+    display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px;
+  }
+  .q { font-size: clamp(17px, 4.6vw, 22px); line-height: 1.35; margin: 0 0 4px; font-weight: 500; }
+  .q code, .mono { font-family: var(--f-mono); font-weight: 600; word-break: break-all; }
+  .qhint { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+
+  .answer { display: flex; flex-wrap: wrap; gap: 8px; }
+  .answer input {
+    flex: 1 1 160px; min-width: 0;
+    font-family: var(--f-mono); font-size: 18px; font-weight: 600;
+    padding: 11px 12px; border: 1px solid var(--rail); border-radius: 2px;
+    background: #fff; color: var(--ink);
+  }
+  .answer input:focus-visible { outline: 2px solid var(--petrol); outline-offset: 1px; }
+
+  .btn {
+    font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .1em;
+    font-weight: 700; font-size: 13px; padding: 11px 18px;
+    border: 1px solid var(--ink); border-radius: 2px;
+    background: var(--ink); color: #fff; cursor: pointer;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn:focus-visible { outline: 2px solid var(--petrol); outline-offset: 2px; }
+
+  .choices { display: grid; gap: 6px; }
+  .choice {
+    text-align: left; font: inherit; color: inherit;
+    background: #fff; border: 1px solid var(--rail); border-radius: 2px;
+    padding: 11px 12px; cursor: pointer;
+  }
+  .choice .mono { font-size: 15px; }
+  .choice:hover { border-color: var(--petrol); }
+  .choice:focus-visible { outline: 2px solid var(--petrol); outline-offset: 2px; }
+  .choice[disabled] { cursor: default; }
+  .choice.right { border-color: var(--petrol); background: rgba(10,110,117,.10); }
+  .choice.wrong { border-color: var(--alarm); background: rgba(176,50,42,.10); }
+
+  /* toggles de bits */
+  .bitpad { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .bitpad.w16 { grid-template-columns: repeat(8, 1fr); }
+  .bt {
+    aspect-ratio: 1 / 1.25; border: 1px solid var(--rail); border-radius: 3px;
+    background: linear-gradient(180deg, #F4F5F5, #C6CCCD);
+    cursor: pointer; position: relative; padding: 0;
+    font-family: var(--f-mono); font-size: 15px; font-weight: 600; color: var(--ink);
+  }
+  .bt.on { background: linear-gradient(180deg, var(--petrol-lit), var(--petrol)); color: #fff; border-color: #06555B; }
+  .bt small { position: absolute; bottom: 1px; left: 0; right: 0; font-size: 8px; opacity: .65; font-weight: 400; }
+  .bt:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .bitval { font-family: var(--f-mono); font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+
+  /* ---------- resolução ---------- */
+  .sol { margin-top: 14px; border-top: 2px solid var(--rail); padding-top: 12px; }
+  .verdict {
+    font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .12em;
+    font-weight: 700; font-size: 14px; margin-bottom: 6px;
+  }
+  .verdict.ok { color: var(--petrol); }
+  .verdict.no { color: var(--alarm); }
+  .sol p { margin: 0 0 10px; font-size: 14.5px; }
+  .sol .yours { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+
+  /* ---------- rodapé de stats ---------- */
+  .stats {
+    display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: var(--gap);
+    padding-top: 10px; border-top: 1px solid var(--steel);
+    font-family: var(--f-mono); font-size: 12.5px; color: var(--ink-soft);
+  }
+  .stats b { color: var(--ink); font-weight: 600; }
+
+  details {
+    margin-top: var(--gap); background: var(--panel);
+    border: 1px solid var(--rail); border-radius: 2px; padding: 10px 12px;
+  }
+  summary {
+    font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .12em;
+    font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  summary:focus-visible { outline: 2px solid var(--petrol); outline-offset: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--steel); }
+  th { font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .1em; font-size: 11px; color: var(--ink-soft); }
+  td.n { font-family: var(--f-mono); }
+  .cols { display: grid; grid-template-columns: 1fr; gap: 0 20px; }
+  @media (min-width: 620px) { .cols { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- aviso de nova versão (SW) ---------- */
+  .update-toast {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; font-family: var(--f-body);
+    font-size: 13px; padding: 10px 16px; border-radius: 3px;
+    display: flex; align-items: center; gap: 12px; z-index: 100;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  }
+  .update-toast button {
+    font-family: var(--f-disp); text-transform: uppercase; letter-spacing: .08em;
+    font-weight: 700; font-size: 12px; background: var(--petrol-lit); color: var(--ink);
+    border: none; border-radius: 2px; padding: 6px 10px; cursor: pointer;
+  }
+
+  footer { border-top: 2px solid var(--rail); background: var(--panel); margin-top: calc(var(--gap) * 2); }
+  footer .wrap { padding-block: 14px; }
+  footer p { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<!-- PART: 03-header -->
+<header>
+  <div class="wrap">
+    <p class="eyebrow">10 níveis · questões infinitas · correção na hora</p>
+    <h1>Caderno de exercícios</h1>
+    <p class="sub">Comece no nível 1, mesmo que pareça óbvio. Ele é a tabuada disso: sem os pesos automáticos, nenhum nível acima fecha. Oito acertos seguidos liberam o próximo.</p>
+  </div>
+</header>
+<!-- PART: 04-main -->
+<main class="wrap">
+
+  <div class="ladder" id="ladder" role="group" aria-label="Níveis"></div>
+
+  <div class="gauge">
+    <span class="cap">Domínio</span>
+    <div class="leds" id="leds" aria-label="Acertos seguidos"></div>
+    <span class="cap" id="gauge-cap">0 / 8</span>
+  </div>
+
+  <section class="qcard" aria-live="polite">
+    <div class="qmeta">
+      <span id="q-level">—</span>
+      <span id="q-count">—</span>
+    </div>
+    <p class="q" id="q-text">—</p>
+    <p class="qhint" id="q-hint"></p>
+    <div id="q-answer"></div>
+    <div class="sol" id="q-sol" hidden>
+      <div class="verdict" id="v-text">—</div>
+      <p class="yours" id="v-yours"></p>
+      <p id="v-sol"></p>
+      <button class="btn" id="btn-next">Próxima</button>
+    </div>
+  </section>
+
+  <div class="stats" id="stats"></div>
+
+  <details>
+    <summary>Tabelas de referência</summary>
+    <div class="cols">
+      <table>
+        <thead><tr><th>Bit</th><th>Peso</th><th>Bit</th><th>Peso</th></tr></thead>
+        <tbody>
+          <tr><td class="n">0</td><td class="n">1</td><td class="n">8</td><td class="n">256</td></tr>
+          <tr><td class="n">1</td><td class="n">2</td><td class="n">9</td><td class="n">512</td></tr>
+          <tr><td class="n">2</td><td class="n">4</td><td class="n">10</td><td class="n">1.024</td></tr>
+          <tr><td class="n">3</td><td class="n">8</td><td class="n">11</td><td class="n">2.048</td></tr>
+          <tr><td class="n">4</td><td class="n">16</td><td class="n">12</td><td class="n">4.096</td></tr>
+          <tr><td class="n">5</td><td class="n">32</td><td class="n">13</td><td class="n">8.192</td></tr>
+          <tr><td class="n">6</td><td class="n">64</td><td class="n">14</td><td class="n">16.384</td></tr>
+          <tr><td class="n">7</td><td class="n">128</td><td class="n">15</td><td class="n">32.768</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>Hex</th><th>Bits</th><th>Hex</th><th>Bits</th></tr></thead>
+        <tbody>
+          <tr><td class="n">0</td><td class="n">0000</td><td class="n">8</td><td class="n">1000</td></tr>
+          <tr><td class="n">1</td><td class="n">0001</td><td class="n">9</td><td class="n">1001</td></tr>
+          <tr><td class="n">2</td><td class="n">0010</td><td class="n">A</td><td class="n">1010</td></tr>
+          <tr><td class="n">3</td><td class="n">0011</td><td class="n">B</td><td class="n">1011</td></tr>
+          <tr><td class="n">4</td><td class="n">0100</td><td class="n">C</td><td class="n">1100</td></tr>
+          <tr><td class="n">5</td><td class="n">0101</td><td class="n">D</td><td class="n">1101</td></tr>
+          <tr><td class="n">6</td><td class="n">0110</td><td class="n">E</td><td class="n">1110</td></tr>
+          <tr><td class="n">7</td><td class="n">0111</td><td class="n">F</td><td class="n">1111</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <table>
+      <thead><tr><th>Dígitos hex</th><th>Bits</th><th>Bytes</th><th>Faixa sem sinal</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td class="n">4</td><td class="n">&frac12;</td><td class="n">0 a 15</td></tr>
+        <tr><td class="n">2</td><td class="n">8</td><td class="n">1</td><td class="n">0 a 255</td></tr>
+        <tr><td class="n">4</td><td class="n">16</td><td class="n">2</td><td class="n">0 a 65.535</td></tr>
+        <tr><td class="n">8</td><td class="n">32</td><td class="n">4</td><td class="n">0 a 4.294.967.295</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Posição hex</th><th>3</th><th>2</th><th>1</th><th>0</th></tr></thead>
+      <tbody>
+        <tr><td class="n">Peso</td><td class="n">4.096</td><td class="n">256</td><td class="n">16</td><td class="n">1</td></tr>
+        <tr><td class="n">Potência</td><td class="n">16³</td><td class="n">16²</td><td class="n">16¹</td><td class="n">16⁰</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Tipo</th><th>Bits</th><th>Faixa</th></tr></thead>
+      <tbody>
+        <tr><td class="n">SINT / USINT</td><td class="n">8</td><td class="n">-128..127 / 0..255</td></tr>
+        <tr><td class="n">INT / UINT</td><td class="n">16</td><td class="n">-32.768..32.767 / 0..65.535</td></tr>
+        <tr><td class="n">DINT / UDINT</td><td class="n">32</td><td class="n">±2.147.483.6xx / 0..4.294.967.295</td></tr>
+        <tr><td class="n">REAL</td><td class="n">32</td><td class="n">inteiro exato até 16.777.216</td></tr>
+      </tbody>
+    </table>
+  </details>
+
+</main>
+<!-- PART: 05-footer -->
+<footer>
+  <div class="wrap">
+    <p>Convenções IEC 61131-3. Endereçamento M e ordem de bytes seguem o modelo Siemens S7 (big-endian). O progresso é reiniciado ao recarregar a página.</p>
+  </div>
+</footer>
+<!-- PART: 06-scripts -->
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pick = (a) => a[rnd(0, a.length - 1)];
+  const P2 = (n) => Math.pow(2, n);
+  const num = (n) => n.toLocaleString("pt-BR");
+  const hx = (v, n) => (v >>> 0).toString(16).toUpperCase().padStart(n, "0");
+  const bnr = (v, n) => (v >>> 0).toString(2).padStart(n, "0").replace(/(.{4})(?=.)/g, "$1 ");
+  const s8 = (v) => (v << 24) >> 24;
+  const s16 = (v) => (v << 16) >> 16;
+  const MASTERY = 8;
+
+  // --- normalizadores de resposta: aceitam 16#FB, 0xfb, FB, 0FB ---
+  function normHex(s) {
+    let t = String(s).trim().toLowerCase().replace(/^16#/, "").replace(/^0x/, "").replace(/[\s_]/g, "");
+    return t.replace(/^0+(?=.)/, "");
+  }
+  const cHex = (v) => (s) => /^[0-9a-f]+$/.test(normHex(s)) && normHex(s) === normHex((v >>> 0).toString(16));
+  // pt-BR: ponto e separador de milhar, virgula e decimal
+  const cNum = (v) => (s) => {
+    const t = String(s).replace(/[\s.]/g, "").replace(",", ".");
+    return t !== "" && t !== "-" && Number(t) === v;
+  };
+  const cBin = (v) => (s) => {
+    const t = String(s).replace(/[\s_]/g, "");
+    return /^[01]+$/.test(t) && parseInt(t, 2) === (v >>> 0);
+  };
+
+  const T = (q, o) => Object.assign({ q: q, type: "text", ph: "resposta" }, o);
+  const C = (q, o) => Object.assign({ q: q, type: "choice" }, o);
+  const B = (q, o) => Object.assign({ q: q, type: "bits" }, o);
+
+  // ================= GERADORES =================
+  const GEN = [];
+
+  // 1 · peso dos bits
+  GEN.push(function () {
+    const k = rnd(0, 15);
+    const v = P2(k);
+    switch (rnd(0, 2)) {
+      case 0: return T("Qual o peso do bit " + k + "?", {
+        ph: "decimal", check: cNum(v), ans: num(v),
+        sol: "Peso do bit N e 2 elevado a N. 2^" + k + " = " + num(v) + ". Dobra a cada bit: 1, 2, 4, 8, 16, 32, 64, 128..."
+      });
+      case 1: return T("Qual bit vale " + num(v) + "?", {
+        ph: "numero do bit", check: cNum(k), ans: String(k),
+        sol: num(v) + " = 2^" + k + ", entao e o bit " + k + ". O expoente E o numero do bit."
+      });
+      default: {
+        const a = rnd(0, 11), b = rnd(0, 11);
+        return T("2^" + a + " + 2^" + b + " = ?", {
+          ph: "decimal", check: cNum(P2(a) + P2(b)), ans: num(P2(a) + P2(b)),
+          sol: "2^" + a + " = " + num(P2(a)) + " e 2^" + b + " = " + num(P2(b)) + ". Soma = " + num(P2(a) + P2(b)) + ". Um numero binario e so a soma dos pesos dos bits ligados."
+        });
+      }
+    }
+  });
+
+  // 2 · binario -> decimal e volta
+  GEN.push(function () {
+    const v = rnd(1, 255);
+    if (rnd(0, 1)) {
+      return T("Quanto vale <code>" + bnr(v, 8) + "</code> como USINT (8 bits, sem sinal)?", {
+        ph: "decimal", check: cNum(v), ans: num(v),
+        sol: "Some o peso de cada bit em 1: " + bitsSum(v, 8) + " = " + num(v) + "."
+      });
+    }
+    return B("Monte " + num(v) + " em 8 bits.", {
+      len: 8, check: cBin(v), ans: bnr(v, 8),
+      sol: "Vá do maior peso para o menor: cabe 128? cabe 64? e assim por diante. " + num(v) + " = " + bitsSum(v, 8) + "."
+    });
+  });
+
+  function bitsSum(v, n) {
+    const parts = [];
+    for (let i = n - 1; i >= 0; i--) if ((v >>> i) & 1) parts.push(num(P2(i)));
+    return parts.length ? parts.join(" + ") : "0";
+  }
+
+  // 3 · hex
+  // Expansao posicional completa: o atalho "byte alto x256" pulava o conceito de peso
+  function hexExpand(v, digits) {
+    const parts = [];
+    for (let i = digits - 1; i >= 0; i--) {
+      const d = (v >>> (i * 4)) & 15;
+      parts.push(d.toString(16).toUpperCase() + " x " + num(P2(i * 4)) + " = " + num(d * P2(i * 4)));
+    }
+    return parts.join(",  ");
+  }
+  GEN.push(function () {
+    switch (rnd(0, 6)) {
+      case 0: {
+        const n = rnd(0, 15);
+        return T("O dígito hex <code>" + n.toString(16).toUpperCase() + "</code> vale quais 4 bits?", {
+          ph: "4 bits, ex 1011", check: cBin(n), ans: n.toString(2).padStart(4, "0"),
+          sol: "Cada digito hex e exatamente 4 bits (um nibble). " + n.toString(16).toUpperCase() + " = " + num(n) + " = " + n.toString(2).padStart(4, "0") + "."
+        });
+      }
+      case 1: {
+        const n = pick([1, 2, 4, 8]);
+        const max = Math.pow(16, n) - 1;
+        return T("Qual o maior valor sem sinal que cabe em <b>" + n + (n > 1 ? " dígitos" : " dígito") + " hex</b>?", {
+          ph: "decimal", check: cNum(max), ans: num(max),
+          sol: n + (n > 1 ? " digitos" : " digito") + " hex = " + n * 4 + " bits. Maior valor = 16^" + n + " - 1 = " + num(max) + ". Hex nao aumenta o numero: quem define a faixa e a quantidade de digitos, nao quais digitos."
+        });
+      }
+      case 2: {
+        const t = pick([["BYTE", 2], ["WORD", 4], ["DWORD", 8]]);
+        return T("Quantos dígitos hexadecimais ocupa um <b>" + t[0] + "</b>?", {
+          ph: "quantidade", check: cNum(t[1]), ans: String(t[1]),
+          sol: t[0] + " tem " + t[1] * 4 + " bits. Cada digito hex vale 4 bits, entao " + t[1] * 4 + " / 4 = " + t[1] + " digitos. Decore: cada 2 digitos hex e exatamente 1 byte. BYTE=2, WORD=4, DWORD=8."
+        });
+      }
+      case 3: {
+        const p = rnd(0, 3);
+        return T("Num número hexadecimal, qual o peso da posição " + p + "? (contando da direita, a primeira é a posição 0)", {
+          ph: "decimal", check: cNum(P2(p * 4)), ans: num(P2(p * 4)),
+          sol: "Cada posicao vale 16 vezes a da direita: posicao 0 = 1, posicao 1 = 16, posicao 2 = 256, posicao 3 = 4.096. Posicao " + p + " = 16^" + p + " = " + num(P2(p * 4)) + ". E a mesma logica do decimal, onde as posicoes valem 1, 10, 100, 1.000."
+        });
+      }
+      case 4: {
+        const v = rnd(16, 255);
+        return T("<code>16#" + hx(v, 2) + "</code> vale quanto em decimal?", {
+          ph: "decimal", check: cNum(v), ans: num(v),
+          sol: "Pesos das posicoes: 16 e 1. " + hexExpand(v, 2) + ". Soma = " + num(v) + ". Confira a ordem de grandeza: 2 digitos hex nunca passam de 255. Em bits: " + bnr(v, 8) + "."
+        });
+      }
+      case 5: {
+        const v = rnd(16, 255);
+        return T("Escreva " + num(v) + " em hexadecimal (2 dígitos).", {
+          ph: "hex", check: cHex(v), ans: "16#" + hx(v, 2),
+          sol: "Quebre em 2 nibbles: " + bnr(v, 8) + " = " + hx(v, 2) + ". Ou: " + num(v) + " / 16 = " + (v >> 4) + " resto " + (v & 15) + "."
+        });
+      }
+      default: {
+        const v = rnd(4096, 65535);
+        return T("<code>16#" + hx(v, 4) + "</code> vale quanto em decimal (sem sinal)?", {
+          ph: "decimal", check: cNum(v), ans: num(v),
+          sol: "Pesos das posicoes: 4.096, 256, 16 e 1. " + hexExpand(v, 4) + ". Soma = " + num(v) + ". Sao 4 digitos, ou seja 2 bytes: o teto e 65.535. Conferindo pelos bits: " + bnr(v, 16) + "."
+        });
+      }
+    }
+  });
+
+  // 4 · MSB, LSB e endereco
+  GEN.push(function () {
+    const b = rnd(0, 9), k = rnd(0, 7);
+    switch (rnd(0, 3)) {
+      case 0: return T("Qual o peso do bit <code>M" + b + "." + k + "</code> dentro do byte MB" + b + "?", {
+        ph: "decimal", check: cNum(P2(k)), ans: num(P2(k)),
+        sol: "O numero depois do ponto E o numero do bit. M" + b + "." + k + " = bit " + k + " = peso 2^" + k + " = " + num(P2(k)) + "."
+      });
+      case 1: return C("<code>M" + b + ".0</code> é o bit mais ou menos significativo do byte MB" + b + "?", {
+        choices: ["O mais significativo (MSB, peso 128)", "O menos significativo (LSB, peso 1)", "Depende da ordem de bytes"],
+        correct: 1,
+        sol: "M" + b + ".0 e o LSB, peso 1. O MSB do byte e M" + b + ".7, peso 128. Endianness e sobre bytes, nunca sobre bits dentro do byte."
+      });
+      case 2: {
+        const v = rnd(1, 255);
+        return C("<code>MB" + b + " = 16#" + hx(v, 2) + "</code>. O bit <code>M" + b + "." + k + "</code> está em quanto?", {
+          choices: ["0", "1"], correct: (v >>> k) & 1,
+          sol: "16#" + hx(v, 2) + " = " + bnr(v, 8) + ". Contando da direita (bit 0) para a esquerda, o bit " + k + " esta em " + ((v >>> k) & 1) + "."
+        });
+      }
+      default: return T("No byte MB" + b + ", qual endereço de bit tem peso " + num(P2(k)) + "? (formato M" + b + ".x)", {
+        ph: "ex: M" + b + "." + k,
+        check: (s) => String(s).trim().toLowerCase().replace(/\s/g, "") === ("m" + b + "." + k),
+        ans: "M" + b + "." + k,
+        sol: num(P2(k)) + " = 2^" + k + ", entao e o bit " + k + ": M" + b + "." + k + "."
+      });
+    }
+  });
+
+  // 5 · complemento de dois
+  GEN.push(function () {
+    switch (rnd(0, 3)) {
+      case 0: {
+        const v = rnd(1, 120);
+        const neg = (-v) & 0xff;
+        return T("Escreva <b>-" + v + "</b> em 8 bits (hex).", {
+          ph: "hex", check: cHex(neg), ans: "16#" + hx(neg, 2),
+          sol: "+" + v + " = " + bnr(v, 8) + ". Inverta todos os bits: " + bnr(~v & 0xff, 8) + ". Some 1: " + bnr(neg, 8) + " = 16#" + hx(neg, 2) + "."
+        });
+      }
+      case 1: {
+        const raw = rnd(128, 255);
+        return T("<code>16#" + hx(raw, 2) + "</code> lido como SINT (8 bits com sinal) vale quanto?", {
+          ph: "decimal", check: cNum(s8(raw)), ans: num(s8(raw)),
+          sol: bnr(raw, 8) + ": bit 7 esta em 1, entao e negativo. Inverta e some 1: " + bnr((-raw) & 0xff, 8) + " = " + num(-s8(raw)) + ". Com o sinal: " + num(s8(raw)) + "."
+        });
+      }
+      case 2: {
+        const raw = rnd(32768, 65535);
+        return T("<code>16#" + hx(raw, 4) + "</code> lido como INT vale quanto?", {
+          ph: "decimal", check: cNum(s16(raw)), ans: num(s16(raw)),
+          sol: "Bit 15 em 1, logo negativo. Atalho: valor sem sinal menos 65.536. " + num(raw) + " - 65.536 = " + num(s16(raw)) + "."
+        });
+      }
+      default: return C("Por que a faixa do INT é -32.768 a +32.767, e não simétrica?", {
+        choices: [
+          "Porque um padrão de bits é reservado para erro",
+          "Porque o zero ocupa uma vaga do lado positivo",
+          "Porque o bit 15 não pode ser usado"
+        ], correct: 1,
+        sol: "Sao 65.536 padroes. Metade tem o bit de sinal em 1 (os 32.768 negativos). Na outra metade, o zero ocupa uma vaga, sobrando 32.767 positivos."
+      });
+    }
+  });
+
+  // 6 · mesmos bits, duas leituras
+  GEN.push(function () {
+    const raw = rnd(0, 1) ? rnd(32768, 65535) : rnd(1, 32767);
+    switch (rnd(0, 2)) {
+      case 0: return T("<code>16#" + hx(raw, 4) + "</code>. Quanto vale lido como <b>UINT</b>?", {
+        ph: "decimal", check: cNum(raw), ans: num(raw),
+        sol: "Sem sinal, o bit 15 e so peso 32.768. Resultado: " + num(raw) + ". Como INT o mesmo padrao daria " + num(s16(raw)) + "."
+      });
+      case 1: return T("<code>16#" + hx(raw, 4) + "</code>. Quanto vale lido como <b>INT</b>?", {
+        ph: "decimal", check: cNum(s16(raw)), ans: num(s16(raw)),
+        sol: "Bit 15 = " + ((raw >>> 15) & 1) + ". " + ((raw >>> 15) & 1 ? "Negativo: " + num(raw) + " - 65.536 = " + num(s16(raw)) : "Positivo, entao INT e UINT coincidem: " + num(raw)) + "."
+      });
+      default: return C("<code>16#" + hx(raw, 4) + "</code> dá o mesmo número lido como INT e como UINT?", {
+        choices: ["Sim", "Não"], correct: (raw >>> 15) & 1 ? 1 : 0,
+        sol: "Bit 15 = " + ((raw >>> 15) & 1) + ". " + ((raw >>> 15) & 1
+          ? "Com o bit de sinal em 1 as leituras divergem: " + num(raw) + " contra " + num(s16(raw)) + "."
+          : "Com o bit de sinal em 0 as duas leituras coincidem em " + num(raw) + ". So divergem quando o bit 15 esta em 1.")
+      });
+    }
+  });
+
+  // 7 · alargamento 16 -> 32
+  GEN.push(function () {
+    const raw = rnd(0, 1) ? rnd(32768, 65535) : rnd(1, 32767);
+    switch (rnd(0, 2)) {
+      case 0: return T("<code>16#" + hx(raw, 4) + "</code> é um <b>INT</b>. Como fica em DINT? (hex de 8 dígitos)", {
+        ph: "hex 32 bits", check: cHex(s16(raw) >>> 0), ans: "16#" + hx(s16(raw) >>> 0, 8),
+        sol: "Bit 15 = " + ((raw >>> 15) & 1) + ", entao a extensao de sinal preenche os 16 bits de cima com " + ((raw >>> 15) & 1 ? "1 (16#FFFF)" : "0 (16#0000)") + ". Resultado 16#" + hx(s16(raw) >>> 0, 8) + " = " + num(s16(raw)) + "."
+      });
+      case 1: return T("<code>16#" + hx(raw, 4) + "</code> é um <b>UINT</b>. Como fica em UDINT? (hex de 8 dígitos)", {
+        ph: "hex 32 bits", check: cHex(raw), ans: "16#" + hx(raw, 8),
+        sol: "Sem sinal nao ha extensao de sinal: entram zeros. 16#" + hx(raw, 8) + " = " + num(raw) + ". Se fosse INT daria " + num(s16(raw)) + "."
+      });
+      default: return C("Alargando 16 para 32 bits com o bit 15 em 1, os 16 bits novos recebem o quê?", {
+        choices: ["Sempre zeros", "Cópias do bit 15, se o tipo tiver sinal", "Cópias do bit 0"],
+        correct: 1,
+        sol: "Extensao de sinal copia o MSB. Com sinal e bit 15 em 1, os 16 bits de cima viram 1. Sem sinal, entram zeros. E a mesma entrada com dois resultados a 65.536 de distancia."
+      });
+    }
+  });
+
+  // 8 · estreitamento 32 -> 16
+  GEN.push(function () {
+    const big = rnd(0, 1);
+    const v = big ? rnd(65536, 900000) : rnd(1, 32767);
+    switch (rnd(0, 2)) {
+      case 0: return T("<code>DINT = " + num(v) + "</code> convertido para INT dá quanto?", {
+        ph: "decimal", check: cNum(s16(v & 0xffff)), ans: num(s16(v & 0xffff)),
+        sol: "Guarde so os 16 bits de baixo: 16#" + hx(v, 8) + " vira 16#" + hx(v & 0xffff, 4) + " = " + num(s16(v & 0xffff)) + ". Aritmeticamente: resto de " + num(v) + " por 65.536, relido com sinal."
+      });
+      case 1: return C("<code>DINT = " + num(v) + "</code> convertido para INT: há perda?", {
+        choices: ["Sim, o valor muda", "Não, cabe em 16 bits"],
+        correct: v === s16(v & 0xffff) ? 1 : 0,
+        sol: v === s16(v & 0xffff)
+          ? num(v) + " cabe na faixa -32.768..32.767, entao os 16 bits de cima eram so extensao de sinal. Sem perda."
+          : num(v) + " estoura a faixa do INT e vira " + num(s16(v & 0xffff)) + ". Sem erro, sem alarme, sem log: esse e o perigo."
+      });
+      default: {
+        const raw = (rnd(1, 0xffff) * 65536 + rnd(1, 0xffff)) >>> 0;
+        return T("<code>DINT = 16#" + hx(raw, 8) + "</code> convertido para INT. Qual o hex do resultado?", {
+          ph: "hex 16 bits", check: cHex(raw & 0xffff), ans: "16#" + hx(raw & 0xffff, 4),
+          sol: "Estreitar e simplesmente descartar os 16 bits de cima (16#" + hx(raw >>> 16, 4) + "). Sobra 16#" + hx(raw & 0xffff, 4) + "."
+        });
+      }
+    }
+  });
+
+  // 9 · REAL e arredondamento
+  GEN.push(function () {
+    switch (rnd(0, 3)) {
+      case 0: {
+        const half = rnd(0, 1);
+        const base = rnd(1, 9);
+        const sign = rnd(0, 1) ? 1 : -1;
+        const x = sign * (base + (half ? 0.5 : pick([0.3, 0.7])));
+        const fn = pick(["TRUNC", "FLOOR", "CEIL", "ROUND"]);
+        const res = fn === "TRUNC" ? Math.trunc(x) : fn === "FLOOR" ? Math.floor(x) : fn === "CEIL" ? Math.ceil(x) : rhe(x);
+        return T("<code>" + fn + "(" + String(x).replace(".", ",") + ")</code> = ?", {
+          ph: "inteiro", check: cNum(res), ans: num(res),
+          sol: fn === "TRUNC" ? "TRUNC corta a fracao e vai em direcao ao zero: " + num(res) + "."
+            : fn === "FLOOR" ? "FLOOR sempre desce, mesmo em negativo: " + num(res) + "."
+            : fn === "CEIL" ? "CEIL sempre sobe: " + num(res) + "."
+            : "ROUND usa meio-par: em empate de 0,5 vai para o par mais proximo. Resultado " + num(res) + "."
+        });
+      }
+      case 1: return C("Até que inteiro o REAL representa valores exatos de um em um?", {
+        choices: ["32.767", "2.147.483.647", "16.777.216", "65.535"], correct: 2,
+        sol: "A mantissa tem 23 bits explicitos mais 1 implicito: 2^24 = 16.777.216. Acima disso o REAL pula numeros, e um totalizador grande em REAL simplesmente para de contar."
+      });
+      case 2: {
+        const e = rnd(127, 140), sg = rnd(0, 1);
+        const val = (sg ? -1 : 1) * P2(e - 127);
+        return T("REAL com sinal=" + sg + ", expoente=" + e + " e mantissa=0. Qual o valor?", {
+          ph: "decimal", check: cNum(val), ans: num(val),
+          sol: "Mantissa zero significa 1,0. O expoente e deslocado em 127: " + e + " - 127 = " + (e - 127) + ". Valor = " + (sg ? "-" : "") + "1,0 x 2^" + (e - 127) + " = " + num(val) + "."
+        });
+      }
+      default: return C("Qual conversão realmente reescreve os bits, em vez de só reinterpretá-los?", {
+        choices: ["DWORD para DINT", "WORD para INT", "DINT para REAL", "BYTE para SINT"],
+        correct: 2,
+        sol: "As outras tres sao reinterpretacao: os bits ficam identicos, muda so a lente. DINT para REAL monta um novo padrao em IEEE 754 (sinal, expoente, mantissa)."
+      });
+    }
+  });
+
+  function rhe(x) {
+    if (Math.abs(x % 1) === 0.5) { const f = Math.floor(x); return f % 2 === 0 ? f : f + 1; }
+    return Math.round(x);
+  }
+
+  // 10 · enderecos sobrepostos
+  GEN.push(function () {
+    const b = [rnd(0, 255), rnd(0, 255), rnd(0, 255), rnd(0, 255)];
+    const md = ((b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3]) >>> 0;
+    const H = "16#" + hx(md, 8);
+    switch (rnd(0, 3)) {
+      case 0: {
+        const i = rnd(0, 3);
+        return T("<code>MD0 = " + H + "</code>. Quanto vale <code>MB" + i + "</code>?", {
+          ph: "hex", check: cHex(b[i]), ans: "16#" + hx(b[i], 2),
+          sol: "Big-endian: o byte mais significativo fica no endereco mais baixo. MB0=" + hx(b[0], 2) + ", MB1=" + hx(b[1], 2) + ", MB2=" + hx(b[2], 2) + ", MB3=" + hx(b[3], 2) + "."
+        });
+      }
+      case 1: {
+        const w = rnd(0, 1) ? 0 : 2;
+        const val = w === 0 ? md >>> 16 : md & 0xffff;
+        return T("<code>MD0 = " + H + "</code>. Quanto vale <code>MW" + w + "</code>?", {
+          ph: "hex", check: cHex(val), ans: "16#" + hx(val, 4),
+          sol: "MW" + w + " = MB" + w + " + MB" + (w + 1) + " = 16#" + hx(w === 0 ? b[0] : b[2], 2) + hx(w === 0 ? b[1] : b[3], 2) + ". Words alinhadas comecam em enderecos pares."
+        });
+      }
+      case 2: {
+        const val = (md >>> 8) & 0xffff;
+        return T("<code>MD0 = " + H + "</code>. Quanto vale <code>MW1</code>?", {
+          ph: "hex", check: cHex(val), ans: "16#" + hx(val, 4),
+          sol: "MW1 pega MB1 e MB2: 16#" + hx(b[1], 2) + hx(b[2], 2) + ". E legal, mas cruza a fronteira entre MW0 e MW2 — quase sempre e erro de projeto."
+        });
+      }
+      default: return C("Você escreve em <code>MW0</code>. Quais endereços mudam junto?", {
+        choices: ["Só MW0", "MB0, MB1, MD0 e MW1", "Todos os MB de 0 a 3"],
+        correct: 1,
+        sol: "MW0 ocupa os bytes MB0 e MB1. Isso altera MD0 (que engloba os 4 bytes) e MW1 (que pega MB1 e MB2). MB2, MB3 e MW2 ficam intactos."
+      });
+    }
+  });
+
+  const LEVELS = [
+    ["Peso dos bits", "A tabuada base 2. Sem isto automático, nada acima fecha."],
+    ["Binário e decimal", "Ler e montar um padrão de 8 bits."],
+    ["Hexadecimal", "Cada dígito hex é exatamente 4 bits."],
+    ["MSB, LSB e endereço", "Onde mora cada bit dentro do byte."],
+    ["Complemento de dois", "Como o negativo é construído."],
+    ["Com sinal vs sem sinal", "Mesmos bits, duas leituras."],
+    ["Alargamento 16 → 32", "Extensão de sinal contra zeros."],
+    ["Estreitamento 32 → 16", "O que some, e quando isso dói."],
+    ["REAL e arredondamento", "IEEE 754 e as quatro funções."],
+    ["Endereços sobrepostos", "MB, MW e MD na mesma memória."]
+  ];
+
+  // ================= ESTADO =================
+  let level = 0;
+  let unlocked = 0;
+  let streak = 0;
+  const stat = LEVELS.map(() => ({ ok: 0, n: 0 }));
+  let q = null, answered = false, bitState = 0;
+
+  // ================= RENDER =================
+  function drawLadder() {
+    const L = $("ladder");
+    L.innerHTML = "";
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "lvl";
+      b.dataset.state = i > unlocked ? "locked" : (stat[i].ok >= MASTERY ? "done" : "open");
+      b.setAttribute("aria-current", String(i === level));
+      if (i > unlocked) b.disabled = true;
+      b.innerHTML =
+        '<span class="no">' + (i + 1) + "</span>" +
+        '<span><span class="nm">' + lv[0] + '</span><br><span class="ds">' + lv[1] + "</span></span>" +
+        '<span class="st">' + (i > unlocked ? "travado" : stat[i].ok + "/" + stat[i].n) + "</span>";
+      b.addEventListener("click", () => { if (i <= unlocked) { level = i; streak = 0; next(); } });
+      L.appendChild(b);
+    });
+  }
+
+  function drawGauge() {
+    const box = $("leds");
+    box.innerHTML = "";
+    for (let i = 0; i < MASTERY; i++) {
+      const d = document.createElement("div");
+      d.className = "led" + (i < streak ? " lit" : "");
+      box.appendChild(d);
+    }
+    $("gauge-cap").textContent = streak + " / " + MASTERY;
+  }
+
+  function drawStats() {
+    const tot = stat.reduce((a, s) => ({ ok: a.ok + s.ok, n: a.n + s.n }), { ok: 0, n: 0 });
+    const pct = tot.n ? Math.round((tot.ok / tot.n) * 100) : 0;
+    $("stats").innerHTML =
+      "<span>Total: <b>" + tot.ok + "/" + tot.n + "</b></span>" +
+      "<span>Acerto: <b>" + pct + "%</b></span>" +
+      "<span>Neste nível: <b>" + stat[level].ok + "/" + stat[level].n + "</b></span>" +
+      "<span>Liberados: <b>" + (unlocked + 1) + "/10</b></span>";
+  }
+
+  function next() {
+    answered = false;
+    bitState = 0;
+    q = GEN[level]();
+    $("q-level").textContent = "Nível " + (level + 1) + " · " + LEVELS[level][0];
+    $("q-count").textContent = "questão " + (stat[level].n + 1);
+    $("q-text").innerHTML = q.q;
+    $("q-hint").textContent = q.type === "text" ? "Aceita 16#, 0x ou só os dígitos." : "";
+    $("q-sol").hidden = true;
+    buildAnswer();
+    drawLadder(); drawGauge(); drawStats();
+  }
+
+  function buildAnswer() {
+    const box = $("q-answer");
+    box.innerHTML = "";
+    if (q.type === "choice") {
+      const g = document.createElement("div");
+      g.className = "choices";
+      q.choices.forEach((c, i) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "choice"; b.innerHTML = c;
+        b.addEventListener("click", () => {
+          if (answered) return;
+          [...g.children].forEach((x, j) => {
+            x.disabled = true;
+            if (j === q.correct) x.classList.add("right");
+            else if (j === i) x.classList.add("wrong");
+          });
+          judge(i === q.correct, q.choices[i].replace(/<[^>]+>/g, ""), q.choices[q.correct].replace(/<[^>]+>/g, ""));
+        });
+        g.appendChild(b);
+      });
+      box.appendChild(g);
+      return;
+    }
+    if (q.type === "bits") {
+      const pad = document.createElement("div");
+      pad.className = "bitpad";
+      const out = document.createElement("div");
+      out.className = "bitval";
+      const sync = () => {
+        out.textContent = "atual: " + bnr(bitState, q.len) + "  =  " + num(bitState);
+      };
+      for (let i = q.len - 1; i >= 0; i--) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "bt";
+        b.innerHTML = '0<small>' + P2(i) + "</small>";
+        b.addEventListener("click", () => {
+          if (answered) return;
+          bitState ^= 1 << i;
+          const on = (bitState >>> i) & 1;
+          b.classList.toggle("on", !!on);
+          b.innerHTML = (on ? "1" : "0") + "<small>" + P2(i) + "</small>";
+          sync();
+        });
+        pad.appendChild(b);
+      }
+      box.append(pad, out);
+      sync();
+      addSubmit(box, () => bitState.toString(2).padStart(q.len, "0"));
+      return;
+    }
+    const row = document.createElement("div");
+    row.className = "answer";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.id = "ans"; inp.autocomplete = "off"; inp.spellcheck = false;
+    inp.placeholder = q.ph;
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(inp.value); });
+    row.appendChild(inp);
+    const b = document.createElement("button");
+    b.className = "btn"; b.type = "button"; b.textContent = "Verificar";
+    b.addEventListener("click", () => submit(inp.value));
+    row.appendChild(b);
+    box.appendChild(row);
+    inp.focus();
+    function submit(v) { if (!answered && String(v).trim() !== "") judge(q.check(v), v, q.ans); }
+  }
+
+  function addSubmit(box, getter) {
+    const b = document.createElement("button");
+    b.className = "btn"; b.type = "button"; b.textContent = "Verificar";
+    b.style.marginTop = "10px";
+    b.addEventListener("click", () => { if (!answered) judge(q.check(getter()), getter(), q.ans); });
+    box.appendChild(b);
+  }
+
+  function judge(ok, given, expected) {
+    answered = true;
+    stat[level].n++;
+    if (ok) { stat[level].ok++; streak++; } else { streak = 0; }
+    if (streak >= MASTERY && level === unlocked && unlocked < LEVELS.length - 1) unlocked++;
+
+    $("v-text").className = "verdict " + (ok ? "ok" : "no");
+    $("v-text").textContent = ok
+      ? (streak >= MASTERY ? "Certo — nível dominado" : "Certo")
+      : "Errado";
+    // dado do usuario vai sempre para textContent, nunca innerHTML
+    $("v-yours").textContent = ok ? "" : "Você respondeu: " + given + "  ·  Resposta: " + expected;
+    $("v-sol").textContent = q.sol;
+    $("q-sol").hidden = false;
+    $("btn-next").focus();
+    drawLadder(); drawGauge(); drawStats();
+  }
+
+  $("btn-next").addEventListener("click", next);
+  document.addEventListener("keydown", (e) => {
+    if (answered && (e.key === "Enter" || e.key === " ") && document.activeElement === $("btn-next")) return;
+    if (answered && e.key === "Enter") { e.preventDefault(); next(); }
+  });
+
+  next();
+})();
+
+// ================= SERVICE WORKER (PWA offline) =================
+(function () {
+  "use strict";
+  if (!("serviceWorker" in navigator)) return;
+
+  function showUpdateToast(reg) {
+    if (document.getElementById("update-toast")) return;
+    const box = document.createElement("div");
+    box.id = "update-toast";
+    box.className = "update-toast";
+    const msg = document.createElement("span");
+    msg.textContent = "Nova versão disponível.";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Atualizar";
+    btn.addEventListener("click", () => {
+      if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    });
+    box.append(msg, btn);
+    document.body.appendChild(box);
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      // se ja existe um worker esperando, o app foi aberto com uma versao nova em cache
+      if (reg.waiting) showUpdateToast(reg);
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) {
+            showUpdateToast(reg);
+          }
+        });
+      });
+    }).catch(() => { /* offline no primeiro load: sem SW nao ha o que fazer */ });
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+})();
+</script>
+</body>
+</html>

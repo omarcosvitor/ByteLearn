@@ -1,0 +1,87 @@
+<!-- PART: 04-main -->
+<main class="wrap">
+
+  <div class="ladder" id="ladder" role="group" aria-label="Níveis"></div>
+
+  <div class="gauge">
+    <span class="cap">Domínio</span>
+    <div class="leds" id="leds" aria-label="Acertos seguidos"></div>
+    <span class="cap" id="gauge-cap">0 / 8</span>
+  </div>
+
+  <section class="qcard" aria-live="polite">
+    <div class="qmeta">
+      <span id="q-level">—</span>
+      <span id="q-count">—</span>
+    </div>
+    <p class="q" id="q-text">—</p>
+    <p class="qhint" id="q-hint"></p>
+    <div id="q-answer"></div>
+    <div class="sol" id="q-sol" hidden>
+      <div class="verdict" id="v-text">—</div>
+      <p class="yours" id="v-yours"></p>
+      <p id="v-sol"></p>
+      <button class="btn" id="btn-next">Próxima</button>
+    </div>
+  </section>
+
+  <div class="stats" id="stats"></div>
+
+  <details>
+    <summary>Tabelas de referência</summary>
+    <div class="cols">
+      <table>
+        <thead><tr><th>Bit</th><th>Peso</th><th>Bit</th><th>Peso</th></tr></thead>
+        <tbody>
+          <tr><td class="n">0</td><td class="n">1</td><td class="n">8</td><td class="n">256</td></tr>
+          <tr><td class="n">1</td><td class="n">2</td><td class="n">9</td><td class="n">512</td></tr>
+          <tr><td class="n">2</td><td class="n">4</td><td class="n">10</td><td class="n">1.024</td></tr>
+          <tr><td class="n">3</td><td class="n">8</td><td class="n">11</td><td class="n">2.048</td></tr>
+          <tr><td class="n">4</td><td class="n">16</td><td class="n">12</td><td class="n">4.096</td></tr>
+          <tr><td class="n">5</td><td class="n">32</td><td class="n">13</td><td class="n">8.192</td></tr>
+          <tr><td class="n">6</td><td class="n">64</td><td class="n">14</td><td class="n">16.384</td></tr>
+          <tr><td class="n">7</td><td class="n">128</td><td class="n">15</td><td class="n">32.768</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>Hex</th><th>Bits</th><th>Hex</th><th>Bits</th></tr></thead>
+        <tbody>
+          <tr><td class="n">0</td><td class="n">0000</td><td class="n">8</td><td class="n">1000</td></tr>
+          <tr><td class="n">1</td><td class="n">0001</td><td class="n">9</td><td class="n">1001</td></tr>
+          <tr><td class="n">2</td><td class="n">0010</td><td class="n">A</td><td class="n">1010</td></tr>
+          <tr><td class="n">3</td><td class="n">0011</td><td class="n">B</td><td class="n">1011</td></tr>
+          <tr><td class="n">4</td><td class="n">0100</td><td class="n">C</td><td class="n">1100</td></tr>
+          <tr><td class="n">5</td><td class="n">0101</td><td class="n">D</td><td class="n">1101</td></tr>
+          <tr><td class="n">6</td><td class="n">0110</td><td class="n">E</td><td class="n">1110</td></tr>
+          <tr><td class="n">7</td><td class="n">0111</td><td class="n">F</td><td class="n">1111</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <table>
+      <thead><tr><th>Dígitos hex</th><th>Bits</th><th>Bytes</th><th>Faixa sem sinal</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td class="n">4</td><td class="n">&frac12;</td><td class="n">0 a 15</td></tr>
+        <tr><td class="n">2</td><td class="n">8</td><td class="n">1</td><td class="n">0 a 255</td></tr>
+        <tr><td class="n">4</td><td class="n">16</td><td class="n">2</td><td class="n">0 a 65.535</td></tr>
+        <tr><td class="n">8</td><td class="n">32</td><td class="n">4</td><td class="n">0 a 4.294.967.295</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Posição hex</th><th>3</th><th>2</th><th>1</th><th>0</th></tr></thead>
+      <tbody>
+        <tr><td class="n">Peso</td><td class="n">4.096</td><td class="n">256</td><td class="n">16</td><td class="n">1</td></tr>
+        <tr><td class="n">Potência</td><td class="n">16³</td><td class="n">16²</td><td class="n">16¹</td><td class="n">16⁰</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Tipo</th><th>Bits</th><th>Faixa</th></tr></thead>
+      <tbody>
+        <tr><td class="n">SINT / USINT</td><td class="n">8</td><td class="n">-128..127 / 0..255</td></tr>
+        <tr><td class="n">INT / UINT</td><td class="n">16</td><td class="n">-32.768..32.767 / 0..65.535</td></tr>
+        <tr><td class="n">DINT / UDINT</td><td class="n">32</td><td class="n">±2.147.483.6xx / 0..4.294.967.295</td></tr>
+        <tr><td class="n">REAL</td><td class="n">32</td><td class="n">inteiro exato até 16.777.216</td></tr>
+      </tbody>
+    </table>
+  </details>
+
+</main>
